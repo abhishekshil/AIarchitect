@@ -14,10 +14,10 @@ export default function ProjectsPage() {
   const { token } = useAuth();
   const [projects, setProjects] = useState<ApiProject[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
   const [deletingRequirementId, setDeletingRequirementId] = useState<string | null>(null);
   const [requirementsMap, setRequirementsMap] = useState<Record<string, ApiRequirementSummary[]>>({});
@@ -60,26 +60,6 @@ export default function ProjectsPage() {
     };
   }, [token, projects]);
 
-  async function onCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!token) return;
-    setCreateError(null);
-    setCreating(true);
-    try {
-      const created = await createProject(token, {
-        name: name.trim(),
-        description: description.trim() || null,
-      });
-      setName('');
-      setDescription('');
-      setProjects((prev) => (prev ? [created, ...prev] : [created]));
-    } catch (err) {
-      setCreateError(err instanceof ApiRequestError ? err.message : 'Create failed');
-    } finally {
-      setCreating(false);
-    }
-  }
-
   async function onDeleteProject(projectId: string) {
     if (!token) return;
     setDeletingProjectId(projectId);
@@ -120,9 +100,30 @@ export default function ProjectsPage() {
     }
   }
 
+  async function onCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    setCreating(true);
+    setListError(null);
+    try {
+      const created = await createProject(token, {
+        name: name.trim(),
+        description: description.trim() || null,
+      });
+      setName('');
+      setDescription('');
+      setProjects((prev) => (prev ? [created, ...prev] : [created]));
+      setShowCreateModal(false);
+    } catch (err) {
+      setListError(err instanceof ApiRequestError ? err.message : 'Could not create project');
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             Projects
@@ -130,60 +131,84 @@ export default function ProjectsPage() {
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Create a workspace for each solution you are planning.
           </p>
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
+            className="mt-3 rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          >
+            Create new project
+          </button>
         </div>
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-        >
-          ← Dashboard
-        </Link>
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">New project</h2>
-        <form onSubmit={onCreate} className="mt-4 space-y-3">
-          <div>
-            <label htmlFor="pname" className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Name
-            </label>
-            <input
-              id="pname"
-              required
-              maxLength={200}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Customer support copilot"
-              className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-            />
-          </div>
-          <div>
-            <label htmlFor="pdesc" className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Description <span className="font-normal text-zinc-400">(optional)</span>
-            </label>
-            <textarea
-              id="pdesc"
-              rows={2}
-              maxLength={4000}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short context for your team"
-              className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-            />
-          </div>
-          {createError ? (
-            <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-              {createError}
-            </p>
-          ) : null}
-          <button
-            type="submit"
-            disabled={creating}
-            className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-          >
-            {creating ? 'Creating…' : 'Create project'}
-          </button>
-        </form>
-      </section>
+      {showCreateModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create new project"
+        >
+          <section className="w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">New project</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!creating) setShowCreateModal(false);
+                }}
+                className="rounded-md px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                Close
+              </button>
+            </div>
+            <form onSubmit={onCreate} className="mt-4 space-y-3">
+              <div>
+                <label htmlFor="project-name" className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                  Name
+                </label>
+                <input
+                  id="project-name"
+                  required
+                  maxLength={200}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                />
+              </div>
+              <div>
+                <label htmlFor="project-description" className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                  Description (optional)
+                </label>
+                <textarea
+                  id="project-description"
+                  rows={3}
+                  maxLength={4000}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={creating}
+                  className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                >
+                  {creating ? 'Creating…' : 'Create project'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
 
       <section>
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Your projects</h2>

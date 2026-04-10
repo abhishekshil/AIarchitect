@@ -58,26 +58,6 @@ export default function DashboardPage() {
             </p>
           </div>
         </section>
-        <section className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/80 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
-          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Workflows</h2>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Workflow screens are available now via each project.
-          </p>
-          <div className="mt-4 flex flex-col gap-2 text-sm">
-            <Link
-              href="/projects"
-              className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-            >
-              Open projects →
-            </Link>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Then follow: <span className="font-medium">Requirements</span> →{' '}
-              <span className="font-medium">Architecture</span> →{' '}
-              <span className="font-medium">Onboarding</span> →{' '}
-              <span className="font-medium">Build &amp; Runtime</span>.
-            </p>
-          </div>
-        </section>
       </div>
     </div>
   );
