@@ -8,6 +8,7 @@ import {
 } from '@/lib/api/code-snippets';
 import { listRuntimeGraphs } from '@/lib/api/runtime-build';
 import { ApiRequestError } from '@/lib/api/http';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import type {
   CodeSnippetBundleResponse,
   CodeSnippetBundleSummary,
@@ -28,6 +29,7 @@ const LANG_LABEL: Record<SnippetLanguage, string> = {
 };
 
 export function IntegrationTab({ projectId, accessToken }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('integrate');
   const [bundle, setBundle] = useState<CodeSnippetBundleResponse | null>(null);
   const [bundleList, setBundleList] = useState<CodeSnippetBundleSummary[]>([]);
   const [lang, setLang] = useState<SnippetLanguage>('curl');
@@ -112,9 +114,9 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-zinc-200 bg-amber-50/60 p-5 dark:border-zinc-800 dark:bg-amber-950/20">
-        <h2 className="text-sm font-semibold text-amber-950 dark:text-amber-100">How to use these snippets</h2>
-        <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-amber-950/90 dark:text-amber-100/90">
+      <section className="rounded-xl border border-zinc-200 bg-emerald-50/60 p-5 dark:border-zinc-800 dark:bg-emerald-950/20">
+        <h2 className="text-sm font-semibold text-emerald-950 dark:text-emerald-100">Your system is ready to integrate</h2>
+        <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-emerald-950/90 dark:text-emerald-100/90">
           <li>
             Point the web app at your API with <code className="rounded bg-white/80 px-1 dark:bg-zinc-900">NEXT_PUBLIC_API_URL</code> (e.g.{' '}
             <code className="rounded bg-white/80 px-1 dark:bg-zinc-900">http://127.0.0.1:8000</code>).
@@ -197,7 +199,7 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Snippet bundle</h2>
-              <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-zinc-500">
                 Pattern <span className="font-medium text-zinc-700 dark:text-zinc-300">{bundle.architecture_pattern}</span> ·
                 graph v{bundle.runtime_graph_version}
               </p>
@@ -222,6 +224,7 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
             ))}
           </div>
 
+          {isAdvanced ? (
           <div>
             <h3 className="text-xs font-semibold uppercase text-zinc-500">Environment</h3>
             <div className="mt-2 whitespace-pre-wrap rounded-lg bg-zinc-100 p-3 text-xs text-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
@@ -229,6 +232,7 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
             </div>
             <CopyButton text={bundle.environment_notes} label="Copy environment notes" className="mt-2" />
           </div>
+          ) : null}
 
           <div>
             <h3 className="text-xs font-semibold uppercase text-zinc-500">Endpoints</h3>
@@ -245,6 +249,7 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
             </ul>
           </div>
 
+          {isAdvanced ? (
           <details className="rounded-lg border border-zinc-200 dark:border-zinc-700">
             <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Example request / response (JSON)
@@ -264,6 +269,7 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
               </div>
             </div>
           </details>
+          ) : null}
 
           <div>
             <div className="flex items-center justify-between gap-2">
@@ -273,6 +279,9 @@ export function IntegrationTab({ projectId, accessToken }: Props) {
             <pre className="mt-2 max-h-[min(70vh,520px)] overflow-auto rounded-lg bg-zinc-950 p-4 text-xs text-zinc-100">
               {snippetText || 'No snippet for this language.'}
             </pre>
+          </div>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-3 text-sm text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+            Journey complete. Your AI system is ready to ship.
           </div>
         </section>
       ) : null}

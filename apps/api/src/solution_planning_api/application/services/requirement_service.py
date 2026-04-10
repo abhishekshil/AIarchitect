@@ -90,7 +90,9 @@ class RequirementService:
         self, *, owner_user_id: UUID, project_id: UUID
     ) -> list[RequirementRevision]:
         await self._projects.get_project(owner_user_id=owner_user_id, project_id=project_id)
-        return await self._requirements.list_for_project(project_id)
+        return await self._requirements.list_for_project(
+            project_id, owner_user_id=owner_user_id
+        )
 
     async def get_constraint_for_requirement(
         self, *, owner_user_id: UUID, project_id: UUID, requirement_id: UUID
@@ -101,3 +103,15 @@ class RequirementService:
             requirement_id=requirement_id,
         )
         return await self._constraints.get_for_requirement(rev.requirement_id)
+
+    async def delete_requirement(
+        self, *, owner_user_id: UUID, project_id: UUID, requirement_id: UUID
+    ) -> None:
+        await self.get_requirement(
+            owner_user_id=owner_user_id,
+            project_id=project_id,
+            requirement_id=requirement_id,
+        )
+        deleted = await self._requirements.delete_by_id(requirement_id)
+        if not deleted:
+            raise NotFoundError("Requirement not found", code="requirement_not_found")

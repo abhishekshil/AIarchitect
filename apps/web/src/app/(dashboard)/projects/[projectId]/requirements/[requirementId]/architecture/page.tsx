@@ -2,10 +2,10 @@
 
 import { ArchitectureOptionsPanel } from '@/components/architecture/architecture-options-panel';
 import { useAuth } from '@/context/auth-context';
+import { useProjectJourneyTracker } from '@/hooks/use-project-journey-tracker';
 import { getProject } from '@/lib/api/projects';
 import { ApiRequestError } from '@/lib/api/http';
 import type { ApiProject } from '@/types/api';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -13,6 +13,7 @@ export default function ArchitectureOptionsPage() {
   const params = useParams();
   const projectId = typeof params.projectId === 'string' ? params.projectId : '';
   const requirementId = typeof params.requirementId === 'string' ? params.requirementId : '';
+  useProjectJourneyTracker(projectId);
   const { token, bootstrapping } = useAuth();
   const [project, setProject] = useState<ApiProject | null>(null);
   const [loadState, setLoadState] = useState<'loading' | 'error' | 'ready'>('loading');
@@ -45,9 +46,6 @@ export default function ArchitectureOptionsPage() {
     return (
       <div className="mx-auto max-w-4xl">
         <p className="text-sm text-red-600">Invalid link.</p>
-        <Link href="/projects" className="mt-4 inline-block text-sm text-emerald-700">
-          ← Projects
-        </Link>
       </div>
     );
   }
@@ -57,35 +55,17 @@ export default function ArchitectureOptionsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-            Architecture options
+            Decide
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             {loadState === 'ready' && project ? project.name : 'Project'}
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Compare recommended designs, then commit one. Requirement{' '}
+            Compare recommended designs with clear trade-offs, then select one. Requirement{' '}
             <span className="font-mono text-xs text-zinc-500">{requirementId}</span>
           </p>
         </div>
-        <div className="flex flex-wrap gap-3 text-sm">
-          <Link
-            href={`/projects/${projectId}/requirements/${requirementId}/onboarding`}
-            className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-          >
-            Onboarding
-          </Link>
-          <Link
-            href={`/projects/${projectId}/requirements/new`}
-            className="text-zinc-600 hover:underline dark:text-zinc-400"
-          >
-            Requirement text
-          </Link>
-          <Link href="/projects" className="text-zinc-600 hover:underline dark:text-zinc-400">
-            All projects
-          </Link>
-        </div>
       </div>
-
       {bootstrapping || loadState === 'loading' ? (
         <div className="h-48 animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" aria-busy="true" />
       ) : null}

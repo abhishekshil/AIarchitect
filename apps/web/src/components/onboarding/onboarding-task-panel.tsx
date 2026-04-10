@@ -1,6 +1,7 @@
 'use client';
 
 import type { OnboardingTaskItem, OnboardingValidationFeedback } from '@/types/onboarding';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import { useEffect, useState } from 'react';
 
 function FeedbackBlock({ fb }: { fb: OnboardingValidationFeedback }) {
@@ -45,6 +46,7 @@ type Props = {
 };
 
 export function OnboardingTaskPanel({ task, unlocked, onStart, onSubmit, busy }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('prepare');
   const [notes, setNotes] = useState('');
   const [artifactsText, setArtifactsText] = useState('');
 
@@ -84,19 +86,21 @@ export function OnboardingTaskPanel({ task, unlocked, onStart, onSubmit, busy }:
           <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{task.description}</p>
         ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
-          {task.condition ? (
+          {isAdvanced && task.condition ? (
             <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
               Condition: {task.condition}
             </span>
           ) : null}
-          {task.guidance_refs.map((ref) => (
-            <span
-              key={ref}
-              className="rounded-full bg-zinc-100 px-2 py-0.5 font-mono text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-            >
-              {ref}
-            </span>
-          ))}
+          {isAdvanced
+            ? task.guidance_refs.map((ref) => (
+                <span
+                  key={ref}
+                  className="rounded-full bg-zinc-100 px-2 py-0.5 font-mono text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                >
+                  {ref}
+                </span>
+              ))
+            : null}
         </div>
       </header>
 
@@ -128,7 +132,7 @@ export function OnboardingTaskPanel({ task, unlocked, onStart, onSubmit, busy }:
         </section>
       ) : null}
 
-      {task.metadata && Object.keys(task.metadata).length > 0 ? (
+      {isAdvanced && task.metadata && Object.keys(task.metadata).length > 0 ? (
         <details className="rounded-lg border border-zinc-200 dark:border-zinc-700">
           <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300">
             Technical metadata

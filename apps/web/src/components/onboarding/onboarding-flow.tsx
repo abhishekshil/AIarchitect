@@ -12,6 +12,7 @@ import { isTaskUnlocked } from '@/lib/onboarding/task-unlock';
 import { OnboardingProgressBar } from '@/components/onboarding/onboarding-progress-bar';
 import { OnboardingTaskPanel } from '@/components/onboarding/onboarding-task-panel';
 import { OnboardingTaskSidebar } from '@/components/onboarding/onboarding-task-sidebar';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import type { FlowOrderMode, OnboardingProgress, OnboardingTaskItem, OnboardingTasksEnvelope } from '@/types/onboarding';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -27,6 +28,7 @@ function mergeTask(tasks: OnboardingTaskItem[], updated: OnboardingTaskItem): On
 }
 
 export function OnboardingFlow({ projectId, requirementId, accessToken }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('prepare');
   const [envelope, setEnvelope] = useState<OnboardingTasksEnvelope | null>(null);
   const [progress, setProgress] = useState<OnboardingProgress | null>(null);
   const [orderMode, setOrderMode] = useState<FlowOrderMode>('linear');
@@ -174,12 +176,6 @@ export function OnboardingFlow({ projectId, requirementId, accessToken }: Props)
         <p className="mt-2 text-sm text-red-800 dark:text-red-200">
           Select an architecture for this requirement first, then return here.
         </p>
-        <Link
-          href={`/projects/${projectId}/requirements/${requirementId}/architecture`}
-          className="mt-4 inline-block text-sm font-medium text-red-900 underline dark:text-red-200"
-        >
-          Go to architecture options
-        </Link>
       </div>
     );
   }
@@ -202,35 +198,43 @@ export function OnboardingFlow({ projectId, requirementId, accessToken }: Props)
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <OnboardingProgressBar progress={progress} />
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={() => setOrderMode('linear')}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-              orderMode === 'linear'
-                ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                : 'border border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-300'
-            }`}
-          >
-            Linear order
-          </button>
-          <button
-            type="button"
-            onClick={() => setOrderMode('graph')}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-              orderMode === 'graph'
-                ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                : 'border border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-300'
-            }`}
-          >
-            Dependency order
-          </button>
-        </div>
+        {isAdvanced ? (
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => setOrderMode('linear')}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                orderMode === 'linear'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
+                  : 'border border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-300'
+              }`}
+            >
+              Linear order
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrderMode('graph')}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                orderMode === 'graph'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
+                  : 'border border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-300'
+              }`}
+            >
+              Dependency order
+            </button>
+          </div>
+        ) : null}
       </div>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        <strong>Linear</strong> follows the default list. <strong>Dependency order</strong> uses graph edges
-        when present; steps stay locked until predecessors are completed.
-      </p>
+      {isAdvanced ? (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <strong>Linear</strong> follows the default list. <strong>Dependency order</strong> uses graph edges
+          when present; steps stay locked until predecessors are completed.
+        </p>
+      ) : (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          Follow steps in order and complete each one to unlock the next.
+        </p>
+      )}
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <aside className="w-full shrink-0 lg:w-72">
@@ -258,6 +262,19 @@ export function OnboardingFlow({ projectId, requirementId, accessToken }: Props)
           )}
         </div>
       </div>
+      {progress && progress.percent_completed >= 100 ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/30">
+          <p className="text-sm text-emerald-900 dark:text-emerald-200">
+            Prepare completed. Continue to build your runtime.
+          </p>
+          <Link
+            href={`/projects/${projectId}/studio/build`}
+            className="mt-3 inline-flex rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 dark:bg-emerald-600"
+          >
+            Next: Build
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

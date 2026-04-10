@@ -103,3 +103,17 @@ async def get_requirement(
         revision=revision_to_response(rev),
         constraint_profile=constraint,
     )
+
+
+@router.delete("/{requirement_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_requirement(
+    project_id: UUID,
+    requirement_id: UUID,
+    current: CurrentUser,
+    svc: Annotated[RequirementService, Depends(get_requirement_service)],
+) -> None:
+    await svc.delete_requirement(
+        owner_user_id=current.user_id,
+        project_id=project_id,
+        requirement_id=requirement_id,
+    )

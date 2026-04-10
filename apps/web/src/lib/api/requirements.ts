@@ -25,3 +25,14 @@ export async function submitRequirement(
     },
   );
 }
+
+export async function deleteRequirement(
+  accessToken: string,
+  projectId: string,
+  requirementId: string,
+): Promise<void> {
+  await apiJson<void>(`/api/v1/projects/${projectId}/requirements/${requirementId}`, {
+    method: 'DELETE',
+    accessToken,
+  });
+}

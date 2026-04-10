@@ -2,6 +2,7 @@
 
 import { ArchitectureComparisonTable } from '@/components/architecture/architecture-comparison-table';
 import { ArchitectureOptionCard } from '@/components/architecture/architecture-option-card';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import { generateCandidates, listCandidates, selectArchitecture } from '@/lib/api/recommendations';
 import { ApiRequestError } from '@/lib/api/http';
 import type { ApiArchitectureRecommendationsEnvelope, ApiArchitectureSelectionEnvelope, ScoringMode } from '@/types/recommendation';
@@ -24,6 +25,7 @@ export function ArchitectureOptionsPanel({
   requirementId,
   accessToken,
 }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('decide');
   const [sortMode, setSortMode] = useState<ScoringMode>('best_overall');
   const [envelope, setEnvelope] = useState<ApiArchitectureRecommendationsEnvelope | null>(null);
   const [listLoading, setListLoading] = useState(true);
@@ -111,24 +113,15 @@ export function ArchitectureOptionsPanel({
             </div>
           </dl>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Journey saved. Continue from the Project Journey menu when you return.
+        </p>
+        <div>
           <Link
             href={`/projects/${projectId}/requirements/${requirementId}/onboarding`}
-            className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 dark:bg-emerald-600"
+            className="inline-flex rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 dark:bg-emerald-600"
           >
-            Continue to onboarding
-          </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href={`/projects/${projectId}/requirements/new`}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
-          >
-            New requirement
+            Next: Prepare
           </Link>
         </div>
       </div>
@@ -155,8 +148,9 @@ export function ArchitectureOptionsPanel({
             ))}
           </select>
           <p className="max-w-md text-xs text-zinc-500 dark:text-zinc-400">
-            Regenerating applies this emphasis. For a first pass, use &quot;best overall&quot; — then switch
-            to cost- or speed-focused views to compare.
+            {isAdvanced
+              ? 'Regenerating applies this emphasis. Start with "best overall", then compare cost or speed focused views.'
+              : 'Start with "best overall" for the easiest decision. You can explore more technical rankings later.'}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -218,9 +212,21 @@ export function ArchitectureOptionsPanel({
 
       {!listLoading && options.length > 0 ? (
         <>
+          <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-4 dark:border-violet-900/40 dark:bg-violet-950/20">
+            <p className="text-sm text-violet-900 dark:text-violet-100">
+              We found <span className="font-semibold">{options.length}</span> viable approaches.
+              {options[0]?.title ? (
+                <>
+                  {' '}
+                  Recommended: <span className="font-semibold">{options[0].title}</span>
+                  {options[0].summary ? ` — ${options[0].summary}` : ''}
+                </>
+              ) : null}
+            </p>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {options.length} option{options.length === 1 ? '' : 's'} — pick one, then confirm below.
+              Compare options, then choose one architecture to continue.
             </p>
             <button
               type="button"
@@ -241,6 +247,7 @@ export function ArchitectureOptionsPanel({
                   selected={selectedId === opt.candidate_id}
                   onSelect={() => setSelectedId(opt.candidate_id)}
                   name={radioName}
+                  fullScreenGraphHref={`/projects/${projectId}/requirements/${requirementId}/architecture/graph/${opt.candidate_id}?sort_mode=${sortMode}`}
                 />
               ))}
             </div>

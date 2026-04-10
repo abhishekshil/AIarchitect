@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from solution_planning_api.application.ports.repositories import ProjectRepository
@@ -70,9 +70,9 @@ class SqlAlchemyProjectRepository(ProjectRepository):
         return project_from_record(row)
 
     async def delete(self, *, project_id: UUID, owner_user_id: UUID) -> bool:
-        row = await self._session.get(ProjectRecord, project_id)
-        if row is None or row.owner_user_id != owner_user_id:
-            return False
-        await self._session.delete(row)
+        stmt = delete(ProjectRecord).where(
+            ProjectRecord.id == project_id, ProjectRecord.owner_user_id == owner_user_id
+        )
+        result = await self._session.execute(stmt)
         await self._session.flush()
-        return True
+        return (result.rowcount or 0) > 0

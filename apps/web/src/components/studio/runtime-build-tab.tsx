@@ -3,8 +3,10 @@
 import { listRequirements } from '@/lib/api/requirements';
 import { getRuntimeBuildJob, listRuntimeGraphs, startRuntimeBuild } from '@/lib/api/runtime-build';
 import { ApiRequestError } from '@/lib/api/http';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import type { ApiRequirementSummary } from '@/types/requirement';
 import type { RuntimeBuildJobResponse, RuntimeGraphListEnvelope } from '@/types/studio';
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 type Props = {
@@ -17,6 +19,7 @@ function isTerminalJob(status: string): boolean {
 }
 
 export function RuntimeBuildTab({ projectId, accessToken }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('build');
   const [requirements, setRequirements] = useState<ApiRequirementSummary[] | null>(null);
   const [reqError, setReqError] = useState<string | null>(null);
   const [selectedReq, setSelectedReq] = useState('');
@@ -99,8 +102,18 @@ export function RuntimeBuildTab({ projectId, accessToken }: Props) {
       <section className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Compile runtime graph</h2>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Queues a build from your architecture selection and onboarding progress for the chosen requirement.
+          {isAdvanced
+            ? 'Queues a build from your architecture selection and onboarding progress for the chosen requirement.'
+            : 'Build prepares your AI system so you can run tests and integrate safely.'}
         </p>
+        {!isAdvanced ? (
+          <ol className="mt-3 list-inside list-decimal text-sm text-zinc-600 dark:text-zinc-300">
+            <li>Choose requirement version</li>
+            <li>Start build</li>
+            <li>Wait for success status</li>
+            <li>Move to Validate tab</li>
+          </ol>
+        ) : null}
         {reqError ? (
           <p className="mt-3 text-sm text-red-600 dark:text-red-400">{reqError}</p>
         ) : null}
@@ -154,10 +167,12 @@ export function RuntimeBuildTab({ projectId, accessToken }: Props) {
             Build job
           </h3>
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+            {isAdvanced ? (
             <div>
               <dt className="text-xs text-zinc-500">Job ID</dt>
               <dd className="font-mono text-xs break-all">{job.job_id}</dd>
             </div>
+            ) : null}
             <div>
               <dt className="text-xs text-zinc-500">Status</dt>
               <dd className="font-medium capitalize">{job.status}</dd>
@@ -177,6 +192,19 @@ export function RuntimeBuildTab({ projectId, accessToken }: Props) {
             <p className="mt-3 text-sm text-red-800 dark:text-red-200">{job.error_detail}</p>
           ) : null}
         </section>
+      ) : null}
+      {job?.status === 'succeeded' ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/30">
+          <p className="text-sm text-emerald-900 dark:text-emerald-200">
+            Build completed successfully. Continue to validation.
+          </p>
+          <Link
+            href={`/projects/${projectId}/studio/validate`}
+            className="mt-3 inline-flex rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 dark:bg-emerald-600"
+          >
+            Next: Validate
+          </Link>
+        </div>
       ) : null}
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">

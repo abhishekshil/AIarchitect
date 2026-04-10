@@ -1,17 +1,5 @@
-import { StudioPageClient } from '@/components/studio/studio-page-client';
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
-export default function StudioPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="mx-auto max-w-5xl space-y-4 p-4">
-          <div className="h-10 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="h-64 animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" />
-        </div>
-      }
-    >
-      <StudioPageClient />
-    </Suspense>
-  );
+export default function StudioPage({ params }: { params: { projectId: string } }) {
+  redirect(`/projects/${params.projectId}/studio/build`);
 }

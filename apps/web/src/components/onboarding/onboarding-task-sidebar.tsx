@@ -1,4 +1,5 @@
 import { isTaskUnlocked } from '@/lib/onboarding/task-unlock';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import type { FlowOrderMode, OnboardingTaskGraphEdge, OnboardingTaskItem } from '@/types/onboarding';
 
 function stateLabel(state: string): string {
@@ -31,6 +32,7 @@ export function OnboardingTaskSidebar({
   orderMode,
   orderedIds,
 }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('prepare');
   return (
     <nav aria-label="Onboarding steps" className="space-y-1">
       {orderedTasks.map((t, index) => {
@@ -59,7 +61,7 @@ export function OnboardingTaskSidebar({
               >
                 {stateLabel(t.state)}
               </span>
-              {t.task_type ? (
+              {isAdvanced && t.task_type ? (
                 <span className="mt-1 block font-mono text-[10px] text-zinc-400">{t.task_type}</span>
               ) : null}
             </span>

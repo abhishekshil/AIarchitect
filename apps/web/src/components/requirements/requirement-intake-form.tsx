@@ -1,6 +1,7 @@
 'use client';
 
 import { AttachmentsPlaceholder } from '@/components/requirements/attachments-placeholder';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import { submitRequirement } from '@/lib/api/requirements';
 import { ApiRequestError } from '@/lib/api/http';
 import type { ApiRequirementSubmitResponse } from '@/types/requirement';
@@ -18,6 +19,7 @@ type Props = {
 type SubmitState = 'idle' | 'loading' | 'error' | 'success';
 
 export function RequirementIntakeForm({ projectId, projectName, accessToken }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('define');
   const [rawText, setRawText] = useState('');
   const [state, setState] = useState<SubmitState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function RequirementIntakeForm({ projectId, projectName, accessToken }: P
             href={`/projects/${projectId}/requirements/${revision.requirement_id}/architecture`}
             className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
-            Compare architecture options
+            Next: Decide
           </Link>
           <button
             type="button"
@@ -112,10 +114,14 @@ export function RequirementIntakeForm({ projectId, projectName, accessToken }: P
   return (
     <div className="space-y-8">
       <form onSubmit={onSubmit} className="space-y-6">
-        <div>
+        <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Describe what you want to build</h2>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Keep it in plain language. We will infer structure and suggest the best architecture next.
+          </p>
           <div className="flex items-baseline justify-between gap-2">
-            <label htmlFor="raw-text" className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-              Requirement text
+            <label htmlFor="raw-text" className="mt-4 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              Requirement
             </label>
             <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
               {rawText.length} / {MAX_LEN}
@@ -134,12 +140,23 @@ export function RequirementIntakeForm({ projectId, projectName, accessToken }: P
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             disabled={state === 'loading'}
-            placeholder="Example: We need an internal Q&A assistant over our Confluence and Slack history, with citations and access only for employees in the engineering org…"
+            placeholder="Example: We need an internal Q&A assistant over our Confluence and Slack history, with citations and access control for engineering employees."
             className="mt-3 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500"
           />
         </div>
 
         <AttachmentsPlaceholder />
+        {isAdvanced ? (
+          <details className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <summary className="cursor-pointer text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              Advanced constraints
+            </summary>
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              Constraint editing is currently inferred automatically by the backend normalizer. In a future version,
+              this section will support direct latency/cost/compliance controls.
+            </p>
+          </details>
+        ) : null}
 
         {state === 'error' && errorMessage ? (
           <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-200">
@@ -153,10 +170,10 @@ export function RequirementIntakeForm({ projectId, projectName, accessToken }: P
             disabled={state === 'loading' || rawText.trim().length === 0}
             className="rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-500"
           >
-            {state === 'loading' ? 'Submitting…' : 'Submit requirement'}
+            {state === 'loading' ? 'Analyzing…' : 'Analyze requirement'}
           </button>
           {state === 'loading' ? (
-            <span className="text-sm text-zinc-500 dark:text-zinc-400">Normalizing and saving…</span>
+            <span className="text-sm text-zinc-500 dark:text-zinc-400">Understanding your requirement and preparing architecture options…</span>
           ) : null}
         </div>
       </form>

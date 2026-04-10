@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [projectCount, setProjectCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,10 +31,10 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Dashboard
+          Welcome back
         </h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Signed in as <span className="font-medium text-zinc-800 dark:text-zinc-200">{user?.email}</span>
+          Continue your AI architecture journey from idea to integration.
         </p>
       </div>
 

@@ -25,3 +25,10 @@ export async function createProject(
     body: JSON.stringify(body),
   });
 }
+
+export async function deleteProject(accessToken: string, projectId: string): Promise<void> {
+  await apiJson<void>(`/api/v1/projects/${projectId}`, {
+    method: 'DELETE',
+    accessToken,
+  });
+}

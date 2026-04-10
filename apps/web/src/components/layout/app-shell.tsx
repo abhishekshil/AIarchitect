@@ -1,4 +1,6 @@
 import { MainNav } from '@/components/layout/main-nav';
+import { ContextualGuidancePanel } from '@/components/layout/contextual-guidance-panel';
+import { WorkspaceTopbar } from '@/components/layout/workspace-topbar';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -9,16 +11,18 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen flex bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950 md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950 md:flex">
         <div className="mb-6 px-3">
           <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-            Planning
+            AI Architect
           </p>
-          <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-50">Workspace</p>
+          <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-50">Phase workflow</p>
         </div>
         <MainNav />
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <WorkspaceTopbar />
         <header className="flex flex-wrap items-center gap-3 border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950 md:hidden">
           <Link
             href="/dashboard"
@@ -34,6 +38,8 @@ export function AppShell({ children }: AppShellProps) {
           </Link>
         </header>
         <main className="flex-1 p-4 md:p-8">{children}</main>
+        </div>
+        <ContextualGuidancePanel />
       </div>
     </div>
   );

@@ -8,7 +8,9 @@ import {
 } from '@/lib/api/playground';
 import { listRuntimeGraphs } from '@/lib/api/runtime-build';
 import { ApiRequestError } from '@/lib/api/http';
+import { useScreenUiMode } from '@/context/ui-mode-context';
 import type { PlaygroundInferenceRunSummary, PlaygroundInferResponse } from '@/types/studio';
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 type Props = {
@@ -17,6 +19,7 @@ type Props = {
 };
 
 export function PlaygroundTab({ projectId, accessToken }: Props) {
+  const { isEffectiveAdvanced: isAdvanced } = useScreenUiMode('validate');
   const [versions, setVersions] = useState<number[]>([]);
   const [version, setVersion] = useState(1);
   const [inputText, setInputText] = useState('');
@@ -97,8 +100,9 @@ export function PlaygroundTab({ projectId, accessToken }: Props) {
       <section className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Mock inference</h2>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Runs the architecture-aware mock engine. Output shape (citations, traces, structured fields)
-          depends on the compiled graph pattern (RAG, hybrid, etc.).
+          {isAdvanced
+            ? 'Runs the architecture-aware mock engine. Output shape (citations, traces, structured fields) depends on the compiled graph pattern (RAG, hybrid, etc.).'
+            : 'Test how your AI system responds before integrating it into your app.'}
         </p>
         <div className="mt-4 flex flex-wrap items-end gap-4">
           <div>
@@ -190,7 +194,7 @@ export function PlaygroundTab({ projectId, accessToken }: Props) {
               </ul>
             </div>
           ) : null}
-          {active.traces.length > 0 ? (
+          {isAdvanced && active.traces.length > 0 ? (
             <div>
               <h4 className="text-xs font-semibold text-zinc-500">Trace</h4>
               <div className="mt-2 overflow-x-auto">
@@ -221,13 +225,28 @@ export function PlaygroundTab({ projectId, accessToken }: Props) {
               </div>
             </div>
           ) : null}
-          <div>
-            <h4 className="text-xs font-semibold text-zinc-500">Metadata</h4>
-            <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-zinc-100 p-3 text-xs dark:bg-zinc-950">
-              {JSON.stringify(active.metadata, null, 2)}
-            </pre>
-          </div>
+          {isAdvanced ? (
+            <div>
+              <h4 className="text-xs font-semibold text-zinc-500">Metadata</h4>
+              <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-zinc-100 p-3 text-xs dark:bg-zinc-950">
+                {JSON.stringify(active.metadata, null, 2)}
+              </pre>
+            </div>
+          ) : null}
         </section>
+      ) : null}
+      {active ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/30">
+          <p className="text-sm text-emerald-900 dark:text-emerald-200">
+            Validation run completed. Continue to integration.
+          </p>
+          <Link
+            href={`/projects/${projectId}/studio/integrate`}
+            className="mt-3 inline-flex rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 dark:bg-emerald-600"
+          >
+            Next: Integrate
+          </Link>
+        </div>
       ) : null}
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">

@@ -2,16 +2,17 @@
 
 import { RequirementIntakeForm } from '@/components/requirements/requirement-intake-form';
 import { useAuth } from '@/context/auth-context';
+import { useProjectJourneyTracker } from '@/hooks/use-project-journey-tracker';
 import { getProject } from '@/lib/api/projects';
 import { ApiRequestError } from '@/lib/api/http';
 import type { ApiProject } from '@/types/api';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function NewRequirementPage() {
   const params = useParams();
   const projectId = typeof params.projectId === 'string' ? params.projectId : '';
+  useProjectJourneyTracker(projectId);
   const { token, bootstrapping } = useAuth();
   const [project, setProject] = useState<ApiProject | null>(null);
   const [loadState, setLoadState] = useState<'loading' | 'error' | 'ready'>('loading');
@@ -45,9 +46,6 @@ export default function NewRequirementPage() {
     return (
       <div className="mx-auto max-w-3xl">
         <p className="text-sm text-red-600 dark:text-red-400">Invalid project link.</p>
-        <Link href="/projects" className="mt-4 inline-block text-sm text-emerald-700 dark:text-emerald-400">
-          ← Projects
-        </Link>
       </div>
     );
   }
@@ -57,7 +55,7 @@ export default function NewRequirementPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-            Requirement intake
+            Define
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             {loadState === 'ready' && project ? project.name : 'Project'}
@@ -65,15 +63,11 @@ export default function NewRequirementPage() {
           {loadState === 'ready' && project?.description ? (
             <p className="mt-2 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{project.description}</p>
           ) : null}
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            Start with plain language. You can add technical depth later.
+          </p>
         </div>
-        <Link
-          href="/projects"
-          className="shrink-0 text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-        >
-          ← All projects
-        </Link>
       </div>
-
       {bootstrapping || loadState === 'loading' ? (
         <div
           className="rounded-xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900"
@@ -93,12 +87,6 @@ export default function NewRequirementPage() {
         >
           <p className="text-sm font-medium text-red-900 dark:text-red-100">Could not load project</p>
           <p className="mt-1 text-sm text-red-800 dark:text-red-200">{loadError}</p>
-          <Link
-            href="/projects"
-            className="mt-4 inline-block text-sm font-medium text-red-800 underline dark:text-red-300"
-          >
-            Back to projects
-          </Link>
         </div>
       ) : null}
 
