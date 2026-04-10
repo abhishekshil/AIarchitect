@@ -1,0 +1,67 @@
+# MVP architecture patterns — extend with new `template_id` rows as needed.
+schema_version: 1
+architecture_templates:
+  - template_id: single_llm_assistant
+    name: Single LLM assistant
+    visible_label: Single LLM assistant
+    description: One model with policy prompts; best for straightforward Q&A and generation.
+    required_capabilities: [instruction_following, generation]
+    optional_capabilities: [memory, monitoring, fallback_handling]
+    constraints_supported:
+      - latency
+      - cost
+      - privacy
+      - auditability
+    onboarding_template_ref: onboarding/single_llm_v1
+    runtime_graph_template_ref: runtime/single_llm_v1
+    evaluation_template_ref: eval/single_llm_v1
+    metadata: { family: single_llm, complexity: low }
+
+  - template_id: rag_assistant
+    name: RAG assistant
+    visible_label: RAG assistant
+    description: Retrieval-augmented generation with optional rerank and citations.
+    required_capabilities: [instruction_following, retrieval, generation]
+    optional_capabilities: [reranking, summarization, validation, monitoring, fallback_handling]
+    constraints_supported:
+      - grounding
+      - freshness
+      - data_residency
+      - cost
+      - latency
+    onboarding_template_ref: onboarding/rag_assistant_v1
+    runtime_graph_template_ref: runtime/rag_assistant_v1
+    evaluation_template_ref: eval/rag_assistant_v1
+    metadata: { family: rag, complexity: medium }
+
+  - template_id: classification_extraction_workflow
+    name: Classification & extraction workflow
+    visible_label: Classification / extraction pipeline
+    description: Route or label inputs, then extract structured fields.
+    required_capabilities: [classification, extraction]
+    optional_capabilities: [routing, validation, monitoring]
+    constraints_supported:
+      - auditability
+      - schema_governance
+      - latency
+    onboarding_template_ref: onboarding/classification_extraction_v1
+    runtime_graph_template_ref: runtime/classification_extraction_v1
+    evaluation_template_ref: eval/structured_outputs_v1
+    metadata: { family: structured, complexity: medium }
+
+  - template_id: rag_validator_agent_workflow
+    name: RAG + validator / agent workflow
+    visible_label: RAG with validation agent
+    description: Retrieve, generate, then validate or refine with tools or a second model.
+    required_capabilities: [instruction_following, retrieval, generation, validation]
+    optional_capabilities: [reranking, critique, tool_calling, planning, monitoring, human_approval]
+    constraints_supported:
+      - grounding
+      - compliance
+      - latency
+      - cost
+      - auditability
+    onboarding_template_ref: onboarding/rag_validator_v1
+    runtime_graph_template_ref: runtime/rag_validator_v1
+    evaluation_template_ref: eval/rag_plus_validator_v1
+    metadata: { family: hybrid, complexity: high }

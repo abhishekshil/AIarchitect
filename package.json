@@ -1,0 +1,27 @@
+{
+  "name": "ai-solution-planning-engine",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "lint:fix": "pnpm --filter web lint --fix",
+    "typecheck:api": "python3 -m mypy apps/api/src",
+    "typecheck:web": "pnpm --filter web typecheck",
+    "test:api": "python3 -m pytest apps/api/tests",
+    "test:web": "pnpm --filter web test",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:ps": "docker compose ps",
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
+    "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}

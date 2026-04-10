@@ -1,0 +1,241 @@
+# Registry schema: list under `capabilities` — keys match CapabilityBlock (Pydantic).
+# Add rows here and restart (or run upsert) to extend without Python changes.
+schema_version: 1
+capabilities:
+  - capability_id: instruction_following
+    name: Instruction following
+    category: core_llm
+    description: Model follows natural-language instructions and policies in prompts.
+    required_inputs: [user_prompt, system_policy]
+    produced_outputs: [model_text]
+    prerequisites: []
+    compatible_architectures: [single_llm_assistant, rag_assistant, agentic]
+    provider_compatibility: [openai_compatible, anthropic_compatible, bedrock]
+    cost_profile: { relative: medium, driver: tokens }
+    latency_profile: { relative: low_to_medium, streaming: true }
+    risk_profile: { misalignment: medium, mitigations: [policy_prompts, eval_harness] }
+    governance_flags: { pii_handling: configurable }
+
+  - capability_id: retrieval
+    name: Document retrieval
+    category: rag
+    description: Fetch relevant chunks from a knowledge corpus or vector index.
+    required_inputs: [query, index_connection]
+    produced_outputs: [retrieved_chunks, scores]
+    prerequisites: [embedding_model_or_sparse_index]
+    compatible_architectures: [rag_assistant, rag_validator_agent_workflow]
+    provider_compatibility: [vector_db, opensearch, pgvector]
+    cost_profile: { relative: medium, driver: index_size_and_qps }
+    latency_profile: { relative: medium, tail_sensitive: true }
+    risk_profile: { stale_docs: medium, mitigations: [ttl, reindex_jobs] }
+    governance_flags: { data_residency: index_location_matters }
+
+  - capability_id: reranking
+    name: Reranking
+    category: rag
+    description: Re-score top-k retrieved chunks for better precision.
+    required_inputs: [query, candidate_chunks]
+    produced_outputs: [ranked_chunks]
+    prerequisites: [retrieval]
+    compatible_architectures: [rag_assistant, rag_validator_agent_workflow]
+    provider_compatibility: [cross_encoder, llm_reranker]
+    cost_profile: { relative: low_to_medium }
+    latency_profile: { relative: medium }
+    risk_profile: { latency_tail: low }
+    governance_flags: {}
+
+  - capability_id: memory
+    name: Conversation memory
+    category: orchestration
+    description: Short or long-term session memory across turns.
+    required_inputs: [messages, session_id]
+    produced_outputs: [memory_state]
+    prerequisites: []
+    compatible_architectures: [single_llm_assistant, rag_assistant, agentic]
+    provider_compatibility: [redis, sql, custom_kv]
+    cost_profile: { relative: low }
+    latency_profile: { relative: low }
+    risk_profile: { data_retention: configurable }
+    governance_flags: { retention_policy: required_for_sensitive }
+
+  - capability_id: classification
+    name: Classification
+    category: structured
+    description: Assign labels, routes, or intent classes to inputs.
+    required_inputs: [input_text, label_schema]
+    produced_outputs: [labels, scores]
+    prerequisites: []
+    compatible_architectures: [classification_extraction_workflow, single_llm_assistant]
+    provider_compatibility: [openai_compatible, custom_sklearn]
+    cost_profile: { relative: low }
+    latency_profile: { relative: low }
+    risk_profile: { misclassification: medium }
+    governance_flags: { audit_trail: recommended }
+
+  - capability_id: extraction
+    name: Structured extraction
+    category: structured
+    description: Map free text into typed fields or JSON schema.
+    required_inputs: [source_text, target_schema]
+    produced_outputs: [structured_object, citations_optional]
+    prerequisites: []
+    compatible_architectures: [classification_extraction_workflow, rag_assistant]
+    provider_compatibility: [openai_compatible, json_mode]
+    cost_profile: { relative: medium }
+    latency_profile: { relative: medium }
+    risk_profile: { schema_drift: medium }
+    governance_flags: { validator_recommended: true }
+
+  - capability_id: planning
+    name: Planning / decomposition
+    category: agentic
+    description: Break goals into steps or sub-tasks.
+    required_inputs: [goal, constraints]
+    produced_outputs: [plan_steps]
+    prerequisites: []
+    compatible_architectures: [agentic, rag_validator_agent_workflow]
+    provider_compatibility: [llm]
+    cost_profile: { relative: medium }
+    latency_profile: { relative: high }
+    risk_profile: { runaway_loops: medium, mitigations: [max_steps, budgets] }
+    governance_flags: {}
+
+  - capability_id: routing
+    name: Routing
+    category: orchestration
+    description: Direct requests to specialized models, tools, or policies.
+    required_inputs: [input, route_table]
+    produced_outputs: [route_decision]
+    prerequisites: [classification]
+    compatible_architectures: [classification_extraction_workflow, agentic]
+    provider_compatibility: [rules_engine, llm_router]
+    cost_profile: { relative: low }
+    latency_profile: { relative: low }
+    risk_profile: { wrong_route: medium }
+    governance_flags: {}
+
+  - capability_id: tool_calling
+    name: Tool / function calling
+    category: agentic
+    description: Invoke external APIs or functions with structured arguments.
+    required_inputs: [tool_specs, user_goal]
+    produced_outputs: [tool_calls, tool_results]
+    prerequisites: []
+    compatible_architectures: [agentic, rag_validator_agent_workflow]
+    provider_compatibility: [openai_tools, mcp]
+    cost_profile: { relative: variable, driver: external_api_cost }
+    latency_profile: { relative: high, network_bound: true }
+    risk_profile: { abuse: high, mitigations: [allowlists, authz, rate_limits] }
+    governance_flags: { approvals: optional }
+
+  - capability_id: validation
+    name: Output validation
+    category: quality
+    description: Check outputs against schema, policy, or reference facts.
+    required_inputs: [candidate_output, rules_or_sources]
+    produced_outputs: [validation_result, fixes_optional]
+    prerequisites: []
+    compatible_architectures: [rag_validator_agent_workflow, classification_extraction_workflow]
+    provider_compatibility: [jsonschema, llm_judge, rules_engine]
+    cost_profile: { relative: low_to_medium }
+    latency_profile: { relative: medium }
+    risk_profile: { false_positives: low }
+    governance_flags: { audit_log: recommended }
+
+  - capability_id: critique
+    name: Critique / refinement
+    category: quality
+    description: Second-pass review to improve drafts.
+    required_inputs: [draft, rubric]
+    produced_outputs: [critique, revised_draft_optional]
+    prerequisites: []
+    compatible_architectures: [rag_validator_agent_workflow, single_llm_assistant]
+    provider_compatibility: [llm]
+    cost_profile: { relative: medium, multiplier: 2 }
+    latency_profile: { relative: medium }
+    risk_profile: {}
+    governance_flags: {}
+
+  - capability_id: summarization
+    name: Summarization
+    category: core_llm
+    description: Condense long inputs while preserving key facts.
+    required_inputs: [long_context]
+    produced_outputs: [summary]
+    prerequisites: []
+    compatible_architectures: [single_llm_assistant, rag_assistant]
+    provider_compatibility: [llm]
+    cost_profile: { relative: medium, driver: context_length }
+    latency_profile: { relative: medium }
+    risk_profile: { omission: medium }
+    governance_flags: {}
+
+  - capability_id: generation
+    name: Open-ended generation
+    category: core_llm
+    description: Produce novel text/code conditioned on prompts.
+    required_inputs: [prompt]
+    produced_outputs: [generated_text]
+    prerequisites: []
+    compatible_architectures: [single_llm_assistant, agentic]
+    provider_compatibility: [llm]
+    cost_profile: { relative: medium }
+    latency_profile: { relative: low_to_medium }
+    risk_profile: { hallucination: medium }
+    governance_flags: { grounding_recommended_for_facts }
+
+  - capability_id: fine_tuning
+    name: Fine-tuning
+    category: training
+    description: Adapt base models with supervised or preference data.
+    required_inputs: [dataset, base_model]
+    produced_outputs: [fine_tuned_checkpoint]
+    prerequisites: [data_governance_review]
+    compatible_architectures: [single_llm_assistant]
+    provider_compatibility: [sagemaker, vertex, custom]
+    cost_profile: { relative: high, driver: gpu_hours }
+    latency_profile: { offline: true }
+    risk_profile: { data_leakage: high, mitigations: [sanitization, access_controls] }
+    governance_flags: { human_review: recommended }
+
+  - capability_id: human_approval
+    name: Human approval
+    category: governance
+    description: Pause or gate high-risk actions pending human sign-off.
+    required_inputs: [proposed_action, policy_context]
+    produced_outputs: [approval_decision]
+    prerequisites: []
+    compatible_architectures: [agentic, rag_validator_agent_workflow]
+    provider_compatibility: [workflow_engine]
+    cost_profile: { relative: low, human_time: true }
+    latency_profile: { relative: high }
+    risk_profile: { operational_friction: medium }
+    governance_flags: { required_for_irreversible_actions: true }
+
+  - capability_id: monitoring
+    name: Monitoring & observability
+    category: platform
+    description: Metrics, traces, and logs for production AI systems.
+    required_inputs: [telemetry_sink]
+    produced_outputs: [dashboards, alerts]
+    prerequisites: []
+    compatible_architectures: [single_llm_assistant, rag_assistant, agentic]
+    provider_compatibility: [otel, prometheus, cloud_vendor]
+    cost_profile: { relative: low }
+    latency_profile: { relative: negligible }
+    risk_profile: {}
+    governance_flags: { retention: configurable }
+
+  - capability_id: fallback_handling
+    name: Fallback handling
+    category: reliability
+    description: Degrade gracefully when models, tools, or data sources fail.
+    required_inputs: [primary_path, fallback_path]
+    produced_outputs: [resolved_output_or_error_surface]
+    prerequisites: []
+    compatible_architectures: [single_llm_assistant, rag_assistant, agentic]
+    provider_compatibility: [generic]
+    cost_profile: { relative: low }
+    latency_profile: { relative: low }
+    risk_profile: { user_trust: mitigated }
+    governance_flags: {}

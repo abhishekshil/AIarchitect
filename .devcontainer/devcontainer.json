@@ -1,0 +1,28 @@
+{
+  "name": "AI Solution Planning Engine",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    }
+  },
+  "forwardPorts": [3000, 8000, 5432, 6379],
+  "portsAttributes": {
+    "3000": { "label": "Next.js" },
+    "8000": { "label": "FastAPI" },
+    "5432": { "label": "PostgreSQL" },
+    "6379": { "label": "Redis" }
+  },
+  "postCreateCommand": "corepack enable && pnpm install && python3 -m pip install --user -e 'apps/api[dev]'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "charliermarsh.ruff",
+        "ms-python.python"
+      ]
+    }
+  }
+}

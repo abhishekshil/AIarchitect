@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+dist
+build
+.venv
+uv.lock
+pnpm-lock.yaml
+coverage
+*.md
